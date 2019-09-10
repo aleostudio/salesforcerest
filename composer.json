@@ -1,0 +1,37 @@
+{
+    "name": "aleostudio/salesforce-rest",
+    "description": "A simple PHP package to integrate the SalesForce REST API to your CRM",
+    "keywords": [ "aleostudio", "php", "package", "salesforce", "rest", "api", "crm" ],
+    "homepage": "https://github.com/aleostudio/salesforce-rest",
+    "type": "package",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Alessandro Orrù",
+            "email": "alessandro.orru@aleostudio.com",
+            "homepage": "https://aleostudio.com",
+            "role": "Developer"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=7.2",
+        "guzzlehttp/guzzle": "^6.3@dev"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^8.3@dev"
+    },
+    "autoload": {
+        "psr-4": {
+            "AleoStudio\\SalesForceRest\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "AleoStudio\\SalesForceRest\\Test\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    }
+}
