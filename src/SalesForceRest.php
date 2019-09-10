@@ -1,4 +1,34 @@
 <?php
+/***********************************************************************************************************************
+
+EXAMPLE CODE TO TRY THE INTEGRATION
+===================================
+<?php
+require_once __DIR__ . '/salesforcerest/vendor/autoload.php';
+
+use AleoStudio\SalesForceRest\SalesForceRest;
+
+// Config.
+$appId       = 'xxxxxxxxxxxxxxx';
+$appSecret   = 'yyyyyyyyyyyyyyy';
+$user        = 'user@domain.com';
+$pass        = 'password';
+$secToken    = 'zzzzzzzzzzzzzzz';
+$authUrl     = 'https://login.salesforce.com/services/oauth2/token';
+$callbackUrl = 'https://login.salesforce.com/services/oauth2/success';
+
+// Main instance.
+$salesforce = new SalesForceRest($appId, $appSecret, $user, $pass, $secToken, $authUrl, $callbackUrl);
+
+// Query example.
+$response = $salesforce->query('SELECT Name, Id from Account LIMIT 100');
+
+// Result handler.
+foreach ($response['records'] as $row) {
+    echo 'ID: '.$row['Id'].' - Name: '.$row['Name'].'<br/>';
+}
+
+***********************************************************************************************************************/
 
 namespace AleoStudio\SalesForceRest;
 
@@ -14,152 +44,169 @@ use \Exception;
 class SalesForceRest
 {
     /**
-     * Auth and instance properties.
+     * @var $salesforce  - The SalesForce authentication instance.
+     * @var $accessToken - The current access token.
+     * @var $instanceUrl - The current instance url.
+     * @var $client      - The GuzzleHttp instance.
      */
-    protected $clientId;
-    protected $clientSecret;
-    protected $username;
-    protected $password;
-    protected $securityToken;
-    protected $authUrl;
-    protected $callbackUrl;
-
-    protected $accessToken;
-    protected $instanceUrl;
-    protected $identityUrl;
-    protected $tokenExpiry;
+    private $salesforce;
+    private $accessToken;
+    private $instanceUrl;
+    private $client;
 
 
 
 
     /**
      * SalesForceRest constructor.
+     * It does the SalesForce authentication and set the returned token and the instance url.
      *
-     * @param array $options - The option array that contains all the auth parameters.
+     * @param  string $appId       - The SalesForce CLIENT ID.
+     * @param  string $appSecret   - The SalesForce CLIENT SECRET.
+     * @param  string $user        - The SalesForce username used by login.
+     * @param  string $pass        - The SalesForce password used by login.
+     * @param  string $secToken    - The SalesForce security token set in the app settings.
+     * @param  string $authUrl     - The SalesForce full auth url.
+     * @param  string $callbackUrl - The SalesForce full callback url.
+     * @throws Exception
      */
-    public function __construct(array $options)
+    public function __construct($appId, $appSecret, $user, $pass, $secToken, $authUrl, $callbackUrl)
     {
-        $this->clientId      = $options['clientId'];
-        $this->clientSecret  = $options['clientSecret'];
-        $this->username      = $options['username'];
-        $this->password      = $options['password'];
-        $this->securityToken = $options['securityToken'];
-        $this->authUrl       = $options['authUrl'];
-        $this->callbackUrl   = $options['callbackUrl'];
+        $this->salesforce  = new SFAuth($appId, $appSecret, $user, $pass, $secToken, $authUrl, $callbackUrl);
+        $this->accessToken = $this->salesforce->getAccessToken();
+        $this->instanceUrl = $this->salesforce->getInstanceUrl();
+
+        $this->client = new Client();
     }
 
 
 
 
     /**
-     * Retrieves the SalesForce access token. If it does not exist,
-     * the authentication method is called.
-     * TODO: handle the tokenExpiry to obtain a new token if the current one is expired.
+     * xxx
      *
-     * @return string $accessToken - Returns a valid access token.
-     * @throws
+     * @param  $query
+     * @return array|mixed|object
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function getAccessToken()
+    public function query($query)
     {
-        if (empty($this->accessToken)) $this->authentication();
+        $url = $this->instanceUrl.'/services/data/v39.0/query';
 
-        return $this->accessToken;
+        $request = $this->client->request('GET', $url, [
+            'headers' => [ 'Authorization' => 'OAuth '.$this->accessToken ],
+            'query'   => [ 'q' => $query ]
+        ]);
+
+        return json_decode($request->getBody(), true);
     }
 
 
 
 
     /**
-     * Retrieves the SalesForce instance url after the authentication.
+     * xxx
      *
-     * @return string $instanceUrl - Returns the instance url.
-     * @throws
+     * @param  $object
+     * @param  array $data
+     * @return mixed
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function getInstanceUrl()
+    public function create($object, array $data)
     {
-        if (empty($this->instanceUrl)) $this->authentication();
+        $url = $this->instanceUrl.'/services/data/v39.0/sobjects/'.$object.'/';
 
-        return $this->instanceUrl;
+        $request = $this->client->request('POST', $url, [
+            'headers' => [ 'Authorization' => 'OAuth '.$this->accessToken, 'Content-type'  => 'application/json' ],
+            'json' => $data
+        ]);
+
+        if ($request->getStatusCode() != 201) {
+            throw new Exception('Error! '.$url.' failed with status '.$request->getStatusCode().'. Reason: '.$request->getReasonPhrase());
+        }
+
+        $response = json_decode($request->getBody(), true);
+
+        return $response['id'];
     }
 
 
 
 
     /**
-     * The authentication flow. The grant parameter must be 'password' for the authentication
-     * or 'refresh_token' to refresh the expired access token (password set as default).
-     * If the flow runs without issues, it set the auth properties to be used in the whole class.
+     * xxx
      *
-     * @param  string $grant  - The grant type (password - refresh_token).
-     * @param  string $format - The return format: json - urlencoded - xml (default: json).
-     * @throws \Exception     - Returns an exception if the auth flow fails.
+     * @param  $object
+     * @param  $id
+     * @param  array $data
+     * @return int
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function authentication($grant = 'password', $format = 'json')
+    public function update($object, $id, array $data)
     {
-        $params = [
-            'grant_type'    => $grant,
-            'client_id'     => $this->clientId,
-            'client_secret' => $this->clientSecret,
-            'username'      => $this->username,
-            'password'      => $this->password . $this->securityToken,
-            'format'        => $format
-        ];
+        $url = $this->instanceUrl.'/services/data/v39.0/sobjects/'.$object.'/'.$id;
 
-        // If the grant given is 'refresh' check if the actual access token is set.
-        // If the access token is valid, add to the param the refresh token, otherwise
-        // force the call to be a simple 'password' request to obtain a new token.
-        if ($grant == 'refresh_token' && !empty($this->accessToken)) {
-            $params['refresh_token'] = $this->accessToken;
-        } else {
-            $params['grant_type'] = 'password';
+        $request = $this->client->request('PATCH', $url, [
+            'headers' => [ 'Authorization' => 'OAuth '.$this->accessToken, 'Content-type'  => 'application/json' ],
+            'json' => $data
+        ]);
+
+        if ($request->getStatusCode() != 204) {
+            throw new Exception('Error! '.$url.' failed with status '.$request->getStatusCode().'. Reason: '.$request->getReasonPhrase());
         }
 
-        // POST call through Guzzle.
-        try {
-            $client   = new Client(['base_uri' => $this->authUrl]);
-            $response = $client->post($this->authUrl, [ RequestOptions::FORM_PARAMS => $params ]);
-
-            switch ($format) {
-                case 'json':
-                    $data = json_decode($response->getBody());
-                    $this->accessToken = $data->access_token;
-                    $this->instanceUrl = $data->instance_url;
-                    $this->tokenExpiry = $data->issued_at;
-                    $this->identityUrl = $data->id;
-                    break;
-                case 'xml':        break; // TODO: finish the XML auth handler.
-                case 'urlencoded': break; // TODO: finish the URL encoded auth handler.
-            }
-        } catch (Exception $e) {
-            throw new Exception('Unable to connect to SalesForce: '.$e);
-        }
+        return $request->getStatusCode();
     }
 
 
 
 
-    public function test()
+    /**
+     * xxx
+     *
+     * @param  $object
+     * @param  $field
+     * @param  $id
+     * @param  array $data
+     * @return int
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function upsert($object, $field, $id, array $data)
     {
-        $accessToken = $this->getAccessToken();
+        $url = $this->instanceUrl.'/services/data/v39.0/sobjects/'.$object.'/'.$field.'/'.$id;
 
-        $query = "SELECT Name, Id from Account LIMIT 100";
-        $url = $this->instanceUrl."/services/data/v20.0/query?q=" . urlencode($query);
+        $request = $this->client->request('PATCH', $url, [
+            'headers' => [ 'Authorization' => 'OAuth '.$this->accessToken, 'Content-type'  => 'application/json' ],
+            'json' => $data
+        ]);
 
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_HEADER, false);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: OAuth ".$accessToken]);
-        $response = json_decode(curl_exec($ch), true);
-        curl_close($ch);
-
-        $total_size = $response['totalSize'];
-
-        echo "$total_size record(s) returned<br/><br/>";
-        foreach ((array) $response['records'] as $record) {
-            echo $record['Id'] . ", " . $record['Name'] . "<br/>";
+        if ($request->getStatusCode() != 204 && $request->getStatusCode() != 201) {
+            throw new Exception('Error! '.$url.' failed with status '.$request->getStatusCode().'. Reason: '.$request->getReasonPhrase());
         }
-        echo "<br/>";
+        return $request->getStatusCode();
+    }
 
-        return $accessToken;
+
+
+
+    /**
+     * xxx
+     *
+     * @param  $object
+     * @param  $id
+     * @return bool
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function delete($object, $id)
+    {
+        $url = $this->instanceUrl.'/services/data/v39.0/sobjects/'.$object.'/'.$id;
+
+        $request = $this->client->request('DELETE', $url, ['headers' => [ 'Authorization' => 'OAuth '.$this->accessToken ]]);
+
+        if ($request->getStatusCode() != 204) {
+            throw new Exception('Error! '.$url.' failed with status '.$request->getStatusCode().'. Reason: '.$request->getReasonPhrase());
+        }
+
+        return true;
     }
 }
