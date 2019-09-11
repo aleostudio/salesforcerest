@@ -38,6 +38,8 @@ class SalesForceRest
     private $apiVersion = '46.0';
 
 
+
+
     /**
      * SalesForceRest constructor.
      * It does the SalesForce authentication and set the returned token and the instance url.
@@ -52,7 +54,7 @@ class SalesForceRest
      * @param  string $callbackUrl - The SalesForce full callback url.
      * @throws SalesForceException
      */
-    public function __construct($appId, $appSecret, $user, $pass, $secToken, $authUrl, $callbackUrl)
+    public function __construct(string $appId, string $appSecret, string $user, string $pass, string $secToken, string $authUrl, string $callbackUrl)
     {
         $this->salesforce  = new SFAuth($appId, $appSecret, $user, $pass, $secToken, $authUrl, $callbackUrl);
         $this->accessToken = $this->salesforce->getAccessToken();
@@ -70,12 +72,12 @@ class SalesForceRest
      *
      * It returns the result as an array/object.
      *
-     * @param  $query
-     * @return array|mixed|object
+     * @param  string $query  - The SOQL format query to retrieve a resource.
+     * @return array  $result - The query result (if valid).
      * @throws SalesForceException
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function query($query)
+    public function query(string $query): array
     {
         $url = $this->instanceUrl.'/services/data/v'. $this->apiVersion .'/query';
 
@@ -84,35 +86,37 @@ class SalesForceRest
             'query'   => [ 'q' => $query ]
         ]);
 
-        if ($request->getStatusCode() != 200)
+        if ($request->getStatusCode() != 200) {
             throw new SalesForceException('Error! '.$url.' failed with status '.$request->getStatusCode().'. Reason: '.$request->getReasonPhrase());
+        }
 
         return json_decode($request->getBody(), true);
     }
 
 
     /**
-     * Creates a new SalesForce entity (object).
+     * Creates a new SalesForce entity.
      * The full documentation can be found at:
      * https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/dome_sobject_create.htm
      *
-     * @param  $object
-     * @param array $data
-     * @return mixed
+     * @param  string $entity - The entity type to create (Account, Contact, Customer, Attachment, Document...).
+     * @param  array  $data   - The entity data.
+     * @return string $id     - The created entity ID (if goes fine).
      * @throws SalesForceException
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function create($object, array $data)
+    public function create(string $entity, array $data): string
     {
-        $url = $this->instanceUrl.'/services/data/v'.$this->apiVersion.'/sobjects/'.$object.'/';
+        $url = $this->instanceUrl.'/services/data/v'.$this->apiVersion.'/sobjects/'.$entity.'/';
 
         $request = $this->client->request('POST', $url, [
             'headers' => [ 'Authorization' => 'OAuth '.$this->accessToken, 'Content-type'  => 'application/json' ],
             'json' => $data
         ]);
 
-        if ($request->getStatusCode() != 201)
+        if ($request->getStatusCode() != 201) {
             throw new SalesForceException('Error! '.$url.' failed with status '.$request->getStatusCode().'. Reason: '.$request->getReasonPhrase());
+        }
 
         $response = json_decode($request->getBody(), true);
 
@@ -123,28 +127,29 @@ class SalesForceRest
 
 
     /**
-     * Updates a SalesForce entity (object) by its ID.
+     * Updates a SalesForce entity by its ID.
      * The full documentation can be found at:
      * https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/dome_update_fields.htm
      *
-     * @param  $object
-     * @param  $id
-     * @param  array $data
-     * @return int
+     * @param  string $entity - The entity type to update (Account, Contact, Customer, Attachment, Document...).
+     * @param  string $id     - The entity ID to update.
+     * @param  array  $data   - The entity data.
+     * @return int    $code   - The status code returned by the call.
      * @throws SalesForceException
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function update($object, $id, array $data)
+    public function update(string $entity, string $id, array $data): int
     {
-        $url = $this->instanceUrl.'/services/data/v'.$this->apiVersion.'/sobjects/'.$object.'/'.$id;
+        $url = $this->instanceUrl.'/services/data/v'.$this->apiVersion.'/sobjects/'.$entity.'/'.$id;
 
         $request = $this->client->request('PATCH', $url, [
             'headers' => [ 'Authorization' => 'OAuth '.$this->accessToken, 'Content-type'  => 'application/json' ],
             'json' => $data
         ]);
 
-        if ($request->getStatusCode() != 204)
+        if ($request->getStatusCode() != 204) {
             throw new SalesForceException('Error! '.$url.' failed with status '.$request->getStatusCode().'. Reason: '.$request->getReasonPhrase());
+        }
 
         return $request->getStatusCode();
     }
@@ -153,30 +158,31 @@ class SalesForceRest
 
 
     /**
-     * Updates (or creates) a SalesForce field of an entity (object) by its ID.
+     * Updates (or creates) a SalesForce field of an entity by its ID.
      * If not exists, it creates a new whole object.
      * The full documentation can be found at:
      * https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/dome_upsert.htm
      *
-     * @param  $object
-     * @param  $field
-     * @param  $id
-     * @param  array $data
-     * @return int
+     * @param  string $entity - The entity type to update (Account, Contact, Customer, Attachment, Document...).
+     * @param  string $field  - The entity field to update.
+     * @param  string $id     - The entity ID to update.
+     * @param  array  $data   - The entity data.
+     * @return int    $code   - The status code returned by the call.
      * @throws SalesForceException
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function upsert($object, $field, $id, array $data)
+    public function upsert(string $entity, string $field, string $id, array $data): int
     {
-        $url = $this->instanceUrl.'/services/data/v'.$this->apiVersion.'/sobjects/'.$object.'/'.$field.'/'.$id;
+        $url = $this->instanceUrl.'/services/data/v'.$this->apiVersion.'/sobjects/'.$entity.'/'.$field.'/'.$id;
 
         $request = $this->client->request('PATCH', $url, [
             'headers' => [ 'Authorization' => 'OAuth '.$this->accessToken, 'Content-type'  => 'application/json' ],
             'json' => $data
         ]);
 
-        if ($request->getStatusCode() != 204 && $request->getStatusCode() != 201)
+        if ($request->getStatusCode() != 204 && $request->getStatusCode() != 201) {
             throw new SalesForceException('Error! '.$url.' failed with status '.$request->getStatusCode().'. Reason: '.$request->getReasonPhrase());
+        }
 
         return $request->getStatusCode();
     }
@@ -185,24 +191,25 @@ class SalesForceRest
 
 
     /**
-     * Deletes a SalesForce entity (object) by its ID.
+     * Deletes a SalesForce entity by its ID.
      * The full documentation can be found at:
      * https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/dome_delete_record.htm
      *
-     * @param  $object
-     * @param  $id
-     * @return bool
+     * @param  string $entity - The entity type to delete (Account, Contact, Customer, Attachment, Document...).
+     * @param  string $id     - The entity ID to delete.
+     * @return bool           - Returns true if deleted.
      * @throws SalesForceException
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function delete($object, $id)
+    public function delete(string $entity, string $id): bool
     {
-        $url = $this->instanceUrl.'/services/data/v'.$this->apiVersion.'/sobjects/'.$object.'/'.$id;
+        $url = $this->instanceUrl.'/services/data/v'.$this->apiVersion.'/sobjects/'.$entity.'/'.$id;
 
         $request = $this->client->request('DELETE', $url, ['headers' => [ 'Authorization' => 'OAuth '.$this->accessToken ]]);
 
-        if ($request->getStatusCode() != 204)
+        if ($request->getStatusCode() != 204) {
             throw new SalesForceException('Error! '.$url.' failed with status '.$request->getStatusCode().'. Reason: '.$request->getReasonPhrase());
+        }
 
         return true;
     }
@@ -215,6 +222,6 @@ class SalesForceRest
      */
     public function test()
     {
-        return "test";
+        return 'test';
     }
 }

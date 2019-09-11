@@ -11,6 +11,7 @@ namespace AleoStudio\SalesForceRest\Exceptions;
 
 use \Exception;
 
+
 class SalesForceException extends Exception
 {
     /**
@@ -20,7 +21,7 @@ class SalesForceException extends Exception
      * @param int             $code
      * @param \Exception|null $previous
      */
-    public function __construct($unit, $code = 0, Exception $previous = null)
+    public function __construct(string $unit, int $code = 0, Exception $previous = null)
     {
         parent::__construct("Bad comparison unit: '$unit'", $code, $previous);
     }

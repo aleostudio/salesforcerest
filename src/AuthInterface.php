@@ -10,7 +10,9 @@
 namespace AleoStudio\SalesForceRest;
 
 
-interface SalesForceAuthInterface extends AuthInterface
+interface AuthInterface
 {
-    public function getInstanceUrl();
+    public function authentication();
+    public function getAccessToken();
+    public function refreshAccessToken();
 }

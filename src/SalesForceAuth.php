@@ -48,7 +48,7 @@ class SalesForceAuth implements SalesForceAuthInterface
      * @param string $authUrl     - The SalesForce full auth url.
      * @param string $callbackUrl - The SalesForce full callback url.
      */
-    public function __construct($appId, $appSecret, $user, $pass, $secToken, $authUrl, $callbackUrl)
+    public function __construct(string $appId, string $appSecret, string $user, string $pass, string $secToken, string $authUrl, string $callbackUrl)
     {
         $this->appId       = $appId;
         $this->appSecret   = $appSecret;
@@ -70,9 +70,12 @@ class SalesForceAuth implements SalesForceAuthInterface
      * @return string $accessToken - Returns a valid access token.
      * @throws SalesForceException
      */
-    public function getAccessToken()
+    public function getAccessToken(): string
     {
-        if (empty($this->accessToken)) $this->authentication();
+        if (empty($this->accessToken)) {
+            $this->authentication();
+        }
+
         return $this->accessToken;
     }
 
@@ -85,9 +88,12 @@ class SalesForceAuth implements SalesForceAuthInterface
      * @return string $instanceUrl - Returns the instance url.
      * @throws SalesForceException
      */
-    public function getInstanceUrl()
+    public function getInstanceUrl(): string
     {
-        if (empty($this->instanceUrl)) $this->authentication();
+        if (empty($this->instanceUrl)) {
+            $this->authentication();
+        }
+
         return $this->instanceUrl;
     }
 
@@ -103,7 +109,7 @@ class SalesForceAuth implements SalesForceAuthInterface
      * @param  string $format      - The return format: json - urlencoded - xml (default: json).
      * @throws SalesForceException - Returns an exception if the auth flow fails.
      */
-    public function authentication($grant = 'password', $format = 'json')
+    public function authentication(string $grant = 'password', string $format = 'json')
     {
         $params = [
             'grant_type'    => $grant,
@@ -116,7 +122,7 @@ class SalesForceAuth implements SalesForceAuthInterface
 
         // If the grant given is 'refresh' check if the actual access token is set. If the token is valid, add to the
         // param the refresh token, otherwise force the call to be a simple 'password' request to obtain a new token.
-        if ($grant == 'refresh_token' && !empty($this->accessToken)) {
+        if (($grant == 'refresh_token') && (!empty($this->accessToken))) {
             $params['refresh_token'] = $this->accessToken;
         } else {
             $params['grant_type'] = 'password';
@@ -133,8 +139,9 @@ class SalesForceAuth implements SalesForceAuthInterface
 
                     // Calculates the custom hash to compare with the token signature to check if it is valid.
                     $hash = hash_hmac('sha256', $data->id . $data->issued_at, $this->appSecret, true);
-                    if (base64_encode($hash) !== $data->signature)
+                    if (base64_encode($hash) !== $data->signature) {
                         throw new SalesForceException('Token signature does not match. Access token is invalid.');
+                    }
 
                     $this->accessToken = $data->access_token;
                     $this->instanceUrl = $data->instance_url;
@@ -154,9 +161,14 @@ class SalesForceAuth implements SalesForceAuthInterface
 
     /**
      * Refresh the current access token.
+     *
+     * @return string $updatedToken - The new access token.
      */
-    public function refreshAccessToken()
+    public function refreshAccessToken(): string
     {
         // TODO: check the current token expiry
+        $updatedToken = null;
+
+        return $updatedToken;
     }
 }
