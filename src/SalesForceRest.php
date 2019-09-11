@@ -75,14 +75,14 @@ class SalesForceRest
      *
      * It returns the result as an array.
      *
-     * @param  string $query  - The SOQL format query to retrieve a resource.
-     * @return array  $result - The query result (if valid).
+     * @param  string $query   - The SOQL format query to retrieve a resource.
+     * @return array  $results - The query result (if valid).
      * @throws SalesForceException
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function query(string $query): array
     {
-        $url = $this->instanceUrl.'/services/data/v'. $this->apiVersion .'/query';
+        $url = $this->instanceUrl.'/services/data/v'.$this->apiVersion.'/query';
 
         $request = $this->client->request('GET', $url, [
             'headers' => [ 'Authorization' => 'OAuth '.$this->accessToken ],
@@ -95,6 +95,8 @@ class SalesForceRest
 
         return json_decode($request->getBody(), true);
     }
+
+
 
 
     /**
@@ -215,6 +217,27 @@ class SalesForceRest
         }
 
         return true;
+    }
+
+
+    /**
+     * Retrieves all the fields and the custom fields of a given entity (object).
+     *
+     * @param  string $entity  - The entity to analyze to get the full custom fields list
+     * @return array  $results - The query result (if valid).
+     * @throws SalesForceException
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function getEntityFields(string $entity): array
+    {
+        $url = $this->instanceUrl.'/services/data/v'.$this->apiVersion.'/sobjects/'.$entity.'/describe/';
+        $request = $this->client->request('GET', $url, ['headers'=>['Authorization'=>'OAuth '.$this->accessToken]]);
+
+        if ($request->getStatusCode() != 200) {
+            throw new SalesForceException('Error! '.$url.' failed with status '.$request->getStatusCode().'. Reason: '.$request->getReasonPhrase());
+        }
+
+        return json_decode($request->getBody(), true)['fields'];
     }
 
 
