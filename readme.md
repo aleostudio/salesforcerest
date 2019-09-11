@@ -15,9 +15,30 @@ composer install
 ---
 Then create a new php file and try this code below
 ```sh
-require_once __DIR__ . '/vendor/autoload.php';
+<?php
+require_once __DIR__ . '/salesforcerest/vendor/autoload.php';
 
 use AleoStudio\SalesForceRest\SalesForceRest;
+
+// Config.
+$appId       = 'YOUR_CLIENT_ID';
+$appSecret   = 'YOUR_CLIENT_SECRET';
+$secToken    = 'YOUR_SECURITY_TOKEN';
+$user        = 'youraccount@domain.com';
+$pass        = 'yourpassword';
+$authUrl     = 'https://login.salesforce.com/services/oauth2/token';
+$callbackUrl = 'https://login.salesforce.com/services/oauth2/success';
+
+// Main instance.
+$salesforce = new SalesForceRest($appId, $appSecret, $user, $pass, $secToken, $authUrl, $callbackUrl);
+
+// Query example.
+$response = $salesforce->query('SELECT Name, Id from Account LIMIT 100');
+
+// Result handler.
+foreach ($response['records'] as $row) {
+    echo 'ID: '.$row['Id'].' - Name: '.$row['Name'].'<br/>';
+}
 ```
 ---
 ## Unit testing

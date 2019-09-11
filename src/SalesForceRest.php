@@ -1,35 +1,12 @@
 <?php
-/***********************************************************************************************************************
-
-EXAMPLE CODE TO TRY THE INTEGRATION
-===================================
-<?php
-require_once __DIR__ . '/salesforcerest/vendor/autoload.php';
-
-use AleoStudio\SalesForceRest\SalesForceRest;
-
-// Config.
-$appId       = 'xxxxxxxxxxxxxxx';
-$appSecret   = 'yyyyyyyyyyyyyyy';
-$user        = 'user@domain.com';
-$pass        = 'password';
-$secToken    = 'zzzzzzzzzzzzzzz';
-$authUrl     = 'https://login.salesforce.com/services/oauth2/token';
-$callbackUrl = 'https://login.salesforce.com/services/oauth2/success';
-
-// Main instance.
-$salesforce = new SalesForceRest($appId, $appSecret, $user, $pass, $secToken, $authUrl, $callbackUrl);
-
-// Query example.
-$response = $salesforce->query('SELECT Name, Id from Account LIMIT 100');
-
-// Result handler.
-foreach ($response['records'] as $row) {
-    echo 'ID: '.$row['Id'].' - Name: '.$row['Name'].'<br/>';
-}
-
-***********************************************************************************************************************/
-
+/**
+ * This file is part of the SalesForceRest package.
+ *
+ * (c) Alessandro Orrù <alessandro.orru@aleostudio.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 namespace AleoStudio\SalesForceRest;
 
 // Package classes.
