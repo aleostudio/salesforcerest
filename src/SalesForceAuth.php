@@ -1,11 +1,20 @@
 <?php
-
+/**
+ * This file is part of the SalesForceRest package.
+ *
+ * (c) Alessandro Orrù <alessandro.orru@aleostudio.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 namespace AleoStudio\SalesForceRest;
+
+// Package classes.
+use AleoStudio\SalesForceRest\Exceptions\SalesForceException;
 
 // External packages.
 use GuzzleHttp\Client;
 use GuzzleHttp\RequestOptions;
-use \Exception;
 
 
 class SalesForceAuth implements SalesForceAuthInterface
@@ -59,7 +68,7 @@ class SalesForceAuth implements SalesForceAuthInterface
      * TODO: handle the tokenExpiry to obtain a new token if the current one is expired.
      *
      * @return string $accessToken - Returns a valid access token.
-     * @throws Exception
+     * @throws SalesForceException
      */
     public function getAccessToken()
     {
@@ -74,7 +83,7 @@ class SalesForceAuth implements SalesForceAuthInterface
      * Retrieves the SalesForce instance url after the authentication.
      *
      * @return string $instanceUrl - Returns the instance url.
-     * @throws Exception
+     * @throws SalesForceException
      */
     public function getInstanceUrl()
     {
@@ -90,9 +99,9 @@ class SalesForceAuth implements SalesForceAuthInterface
      * or 'refresh_token' to refresh the expired access token (password set as default).
      * If the flow runs without issues, it set the auth properties to be used in the whole class.
      *
-     * @param  string $grant  - The grant type (password - refresh_token).
-     * @param  string $format - The return format: json - urlencoded - xml (default: json).
-     * @throws Exception      - Returns an exception if the auth flow fails.
+     * @param  string $grant       - The grant type (password - refresh_token).
+     * @param  string $format      - The return format: json - urlencoded - xml (default: json).
+     * @throws SalesForceException - Returns an exception if the auth flow fails.
      */
     public function authentication($grant = 'password', $format = 'json')
     {
@@ -114,12 +123,19 @@ class SalesForceAuth implements SalesForceAuthInterface
         }
 
         try {
+            // Post call through Guzzle.
             $client   = new Client(['base_uri' => $this->authUrl]);
             $response = $client->post($this->authUrl, [ RequestOptions::FORM_PARAMS => $params ]);
 
             switch ($format) {
                 case 'json':
                     $data = json_decode($response->getBody());
+
+                    // Calculates the custom hash to compare with the token signature to check if it is valid.
+                    $hash = hash_hmac('sha256', $data->id . $data->issued_at, $this->appSecret, true);
+                    if (base64_encode($hash) !== $data->signature)
+                        throw new SalesForceException('Token signature does not match. Access token is invalid.');
+
                     $this->accessToken = $data->access_token;
                     $this->instanceUrl = $data->instance_url;
                     $this->tokenExpiry = $data->issued_at;
@@ -128,8 +144,8 @@ class SalesForceAuth implements SalesForceAuthInterface
                 case 'xml':        break; // TODO: finish the XML auth handler.
                 case 'urlencoded': break; // TODO: finish the URL encoded auth handler.
             }
-        } catch (Exception $e) {
-            throw new Exception('Unable to connect to SalesForce: '.$e);
+        } catch (SalesForceException $e) {
+            throw new SalesForceException('Unable to connect to SalesForce: '.$e);
         }
     }
 
