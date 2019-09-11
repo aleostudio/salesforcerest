@@ -33,12 +33,13 @@ $callbackUrl = 'https://login.salesforce.com/services/oauth2/success';
 $salesforce = new SalesForceRest($appId, $appSecret, $user, $pass, $secToken, $authUrl, $callbackUrl);
 
 // Query example.
-$response = $salesforce->query('SELECT Name, Id from Account LIMIT 100');
+$response = $salesforce->query('SELECT Id, Name, Email from Contact LIMIT 100');
 
-// Result handler.
+// Result handler example.
 foreach ($response['records'] as $row) {
-    echo 'ID: '.$row['Id'].' - Name: '.$row['Name'].'<br/>';
+    echo 'ID: '.$row['Id'].' - Name: '.$row['Name'].' - Email: '.$row['Email'].'<br/>';
 }
+
 ```
 ---
 ## Unit testing
