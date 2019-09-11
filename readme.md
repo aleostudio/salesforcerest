@@ -40,6 +40,12 @@ foreach ($response['records'] as $row) {
     echo 'ID: '.$row['Id'].' - Name: '.$row['Name'].' - Email: '.$row['Email'].'<br/>';
 }
 
+// CRUD methods list.
+$results = $salesforce->query('SELECT Id, Name from Contact LIMIT 100');
+$new_id  = $salesforce->create('Contact', ['FirstName'=>'John', 'LastName'=>'Doe', 'Email'=>'john.doe@domain.com']);
+$update  = $salesforce->update('Contact', '0030b00002KgsnvAAB', ['FirstName'=>'Johnnnnn', 'LastName'=>'Doeeee', 'Title'=>null]);
+$delete  = $salesforce->delete('Contact', '0030b00002KgsnvAAB');
+
 ```
 ---
 ## Unit testing

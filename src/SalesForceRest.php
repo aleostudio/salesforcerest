@@ -70,7 +70,10 @@ class SalesForceRest
      * The full documentation can be found at:
      * https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/using_resources_working_with_searches_and_queries.htm
      *
-     * It returns the result as an array/object.
+     * The complete fields list for every entity can be found at:
+     * https://developer.salesforce.com/docs/atlas.en-us.sfFieldRef.meta/sfFieldRef/salesforce_field_reference.htm
+     *
+     * It returns the result as an array.
      *
      * @param  string $query  - The SOQL format query to retrieve a resource.
      * @return array  $result - The query result (if valid).
