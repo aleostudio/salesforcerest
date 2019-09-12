@@ -12,8 +12,12 @@ Install its dependencies with:
 ```sh
 composer install
 ```
+If you use composer, type this command:
+```sh
+composer require aleostudio/salesforce-rest:dev-master
+```
 ---
-Then create a new php file and try this code below
+Then create a new php file and try this code below (customizing the autoload path if you have installed it by composer)
 ```sh
 <?php
 require_once __DIR__ . '/salesforcerest/vendor/autoload.php';
@@ -51,7 +55,24 @@ $fields  = $salesforce->getEntityFields('Contact');
 ---
 ## Unit testing
 
-Install PHPUnit and then run the test with the command:
+Install PHPUnit for your OS:
+```sh
+# On MacOS through Homebrew:
+brew install phpunit
+
+# On Linux Ubuntu/Debian:
+apt install phpunit
+
+# By sources:
+wget https://phar.phpunit.de/phpunit-8.3.4.phar
+chmod +x phpunit-8.3.4.phar
+sudo mv phpunit-8.3.4.phar /usr/local/bin/phpunit  
+```
+Run the test with the command:
 ```sh
 phpunit --bootstrap vendor/autoload.php tests/SalesForceRestTest.php 
+```
+Or by Composer:
+```sh
+composer test tests/SalesForceRestTest.php
 ```
