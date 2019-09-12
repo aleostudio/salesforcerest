@@ -6,7 +6,7 @@ A simple REST API integration to handle data from SalesForce CRM
 
 Clone the package with the command:
 ```sh
-git clone git@github.com:aleostudio/salesforce-rest.git
+git clone git@github.com:aleostudio/salesforcerest.git
 ```
 Install its dependencies with:
 ```sh
@@ -14,7 +14,7 @@ composer install
 ```
 If you use composer, type this command:
 ```sh
-composer require aleostudio/salesforce-rest:dev-master
+composer require aleostudio/salesforcerest:dev-master
 ```
 ---
 Then create a new php file and try this code below (customizing the autoload path if you have installed it by composer)

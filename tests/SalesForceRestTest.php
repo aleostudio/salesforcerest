@@ -1,19 +1,12 @@
 <?php
-/*****************************************************************************
- *                                                                           * 
- *                    AleoStudio - PHPUnit installation                      *
- *                    =================================                      *
- *                    alessandro.orru@aleostudio.com                         *
- *                                                                           *
- * $ wget https://phar.phpunit.de/phpunit-6.5.phar                           *
- * $ chmod +x phpunit-6.5.phar                                               *
- * $ sudo mv phpunit-6.5.phar /usr/local/bin/phpunit                         *
- *                                                                           *
- * Launch with:                                                              *
- * $ phpunit --bootstrap vendor/autoload.php tests/CurrencyFormatterTest.php *
- *                                                                           *
- *****************************************************************************/
-
+/**
+ * This file is part of the SalesForceRest package.
+ *
+ * (c) Alessandro Orrù <alessandro.orru@aleostudio.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 namespace AleoStudio\SalesForceRest;
 
 use AleoStudio\SalesForceRest\SalesForceRest;
