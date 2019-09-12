@@ -1,9 +1,9 @@
 {
-    "name": "aleostudio/salesforce-rest",
+    "name": "aleostudio/salesforcerest",
     "description": "A simple PHP package to integrate the SalesForce REST API to your CRM",
     "version": "1.0.0",
     "keywords": [ "aleostudio", "php", "package", "salesforce", "rest", "api", "crm" ],
-    "homepage": "https://github.com/aleostudio/salesforce-rest",
+    "homepage": "https://github.com/aleostudio/salesforcerest",
     "type": "package",
     "license": "MIT",
     "authors": [
