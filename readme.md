@@ -14,13 +14,13 @@ composer install
 ```
 If you use composer, type this command:
 ```sh
-composer require aleostudio/salesforcerest:dev-master
+composer require aleostudio/salesforcerest
 ```
 ---
-Then create a new php file and try this code below (customizing the autoload path if you have installed it by composer)
+Then create a new php file and try this code below (customizing the autoload path)
 ```sh
 <?php
-require_once __DIR__ . '/salesforcerest/vendor/autoload.php';
+require_once __DIR__ . '/vendor/autoload.php';
 
 use AleoStudio\SalesForceRest\SalesForceRest;
 
