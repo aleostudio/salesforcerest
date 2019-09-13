@@ -10,23 +10,23 @@
 namespace AleoStudio\SalesForceRest;
 
 // Package classes.
-use AleoStudio\SalesForceRest\SalesForceAuth as SFAuth;
 use AleoStudio\SalesForceRest\Exceptions\SalesForceException;
 
 // External packages.
 use GuzzleHttp\Client;
+use Stevenmaguire\OAuth2\Client\Provider\Salesforce as SalesForceAuth;
 
 
 class SalesForceRest
 {
     /**
-     * @var $salesforce  - The SalesForce authentication instance.
+     * @var $auth        - The SalesForce authentication instance.
      * @var $accessToken - The current access token.
      * @var $instanceUrl - The current instance url.
      * @var $apiVersion  - The current API version.
      * @var $client      - The GuzzleHttp instance.
      */
-    private $salesforce;
+    private $auth;
     private $accessToken;
     private $instanceUrl;
     private $client;
@@ -47,19 +47,40 @@ class SalesForceRest
      *
      * @param  string $appId       - The SalesForce CLIENT ID.
      * @param  string $appSecret   - The SalesForce CLIENT SECRET.
-     * @param  string $user        - The SalesForce username used by login.
-     * @param  string $pass        - The SalesForce password used by login.
-     * @param  string $secToken    - The SalesForce security token set in the app settings.
-     * @param  string $authUrl     - The SalesForce full auth url.
      * @param  string $callbackUrl - The SalesForce full callback url.
-     * @throws SalesForceException
      */
-    public function __construct(string $appId, string $appSecret, string $user, string $pass, string $secToken, string $authUrl, string $callbackUrl)
+    public function __construct(string $appId, string $appSecret, string $callbackUrl)
     {
-        $this->salesforce  = new SFAuth($appId, $appSecret, $user, $pass, $secToken, $authUrl, $callbackUrl);
-        $this->accessToken = $this->salesforce->getAccessToken();
-        $this->instanceUrl = $this->salesforce->getInstanceUrl();
-        $this->client      = new Client();
+        $oauthParams  = [ 'clientId' => $appId, 'clientSecret' => $appSecret, 'redirectUri' => $callbackUrl ];
+        $this->auth   = new SalesForceAuth($oauthParams);
+        $this->client = new Client();
+
+        $this->authorization();
+    }
+
+
+
+
+    private function authorization()
+    {
+        // TODO:
+        // a) get access token, expiry date and refresh token from database if exists
+        // b) check if token is still valid
+        // c) if it is expired, request a refresh access token
+
+        if (empty($this->accessToken)) {
+            $authorizationUrl = $this->auth->getAuthorizationUrl();
+
+            if (isset($_GET['code'])) {
+                $tokenObject       = $this->auth->getAccessToken('authorization_code', ['code' => $_GET['code']]);
+                $this->accessToken = $tokenObject->getToken();
+                $this->instanceUrl = $tokenObject->getInstanceUrl();
+                $refreshToken      = $tokenObject->getRefreshToken();
+                $expires           = $tokenObject->getExpires();
+            } else {
+                header('Location: '.$authorizationUrl);
+            }
+        }
     }
 
 
