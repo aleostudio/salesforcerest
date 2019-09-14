@@ -14,19 +14,20 @@ use AleoStudio\SalesForceRest\Exceptions\SalesForceException;
 
 // External packages.
 use GuzzleHttp\Client;
-use Stevenmaguire\OAuth2\Client\Provider\Salesforce as SalesForceAuth;
 
 
 class SalesForceRest
 {
     /**
      * @var $auth        - The SalesForce authentication instance.
+     * @var $config      - The SalesForce array config.
      * @var $accessToken - The current access token.
      * @var $instanceUrl - The current instance url.
      * @var $apiVersion  - The current API version.
      * @var $client      - The GuzzleHttp instance.
      */
     private $auth;
+    private $config;
     private $accessToken;
     private $instanceUrl;
     private $client;
@@ -42,45 +43,36 @@ class SalesForceRest
 
     /**
      * SalesForceRest constructor.
-     * It does the SalesForce authentication and set the returned token and the instance url.
-     * A GuzzleClient instance will be created too.
+     * It creates a GuzzleClient instance and set the config var.
      *
-     * @param  string $appId       - The SalesForce CLIENT ID.
-     * @param  string $appSecret   - The SalesForce CLIENT SECRET.
-     * @param  string $callbackUrl - The SalesForce full callback url.
+     * @param array $config - The full config array.
+     * @throws SalesForceException
      */
-    public function __construct(string $appId, string $appSecret, string $callbackUrl)
+    public function __construct(array $config)
     {
-        $oauthParams  = [ 'clientId' => $appId, 'clientSecret' => $appSecret, 'redirectUri' => $callbackUrl ];
-        $this->auth   = new SalesForceAuth($oauthParams);
+        $this->config = $config;
         $this->client = new Client();
-
-        $this->authorization();
     }
 
 
 
 
-    private function authorization()
+    /**
+     * It does the authentication by OAuth or Password/Secret token depending
+     * by the parameters set into the config.
+     *
+     * @throws SalesForceException
+     */
+    public function authentication()
     {
-        // TODO:
-        // a) get access token, expiry date and refresh token from database if exists
-        // b) check if token is still valid
-        // c) if it is expired, request a refresh access token
+        // TODO: check the config to know which auth method is requested (OAuth or by password/secret token).
+        // Actually, we do the auth by OAuth.
 
-        if (empty($this->accessToken)) {
-            $authorizationUrl = $this->auth->getAuthorizationUrl();
+        $this->auth = new SalesForceAuthOauth($this->config);
+        $this->auth->authentication();
 
-            if (isset($_GET['code'])) {
-                $tokenObject       = $this->auth->getAccessToken('authorization_code', ['code' => $_GET['code']]);
-                $this->accessToken = $tokenObject->getToken();
-                $this->instanceUrl = $tokenObject->getInstanceUrl();
-                $refreshToken      = $tokenObject->getRefreshToken();
-                $expires           = $tokenObject->getExpires();
-            } else {
-                header('Location: '.$authorizationUrl);
-            }
-        }
+        $this->accessToken = $this->auth->getAccessToken();
+        $this->instanceUrl = $this->auth->getInstanceUrl();
     }
 
 
@@ -241,6 +233,8 @@ class SalesForceRest
     }
 
 
+
+
     /**
      * Retrieves all the fields and the custom fields of a given entity (object).
      *
@@ -259,16 +253,5 @@ class SalesForceRest
         }
 
         return json_decode($request->getBody(), true)['fields'];
-    }
-
-
-
-
-    /**
-     * Simple test method to try new features.
-     */
-    public function test()
-    {
-        return 'test';
     }
 }
