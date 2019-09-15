@@ -19,18 +19,13 @@ use GuzzleHttp\Client;
 class SalesForceRest
 {
     /**
-     * @var $auth        - The SalesForce authentication instance.
-     * @var $config      - The SalesForce array config.
+     * @var $client      - The GuzzleHttp instance.
      * @var $accessToken - The current access token.
      * @var $instanceUrl - The current instance url.
-     * @var $apiVersion  - The current API version.
-     * @var $client      - The GuzzleHttp instance.
      */
-    private $auth;
-    private $config;
+    private $client;
     private $accessToken;
     private $instanceUrl;
-    private $client;
 
     /**
      * The current API version. We can retrieve all the available apis from:
@@ -43,15 +38,19 @@ class SalesForceRest
 
     /**
      * SalesForceRest constructor.
-     * It creates a GuzzleClient instance and set the config var.
+     * It creates a GuzzleClient instance and executes the authentication method.
      *
-     * @param array $config - The full config array.
+     * @param  array  $config       - The full config array.
+     * @param  string $accessToken  - The stored access token to avoid the authentication every time.
+     * @param  string $instanceUrl  - The instance url to use in every call.
      * @throws SalesForceException
      */
-    public function __construct(array $config)
+    public function __construct(array $config, string $accessToken, string $instanceUrl)
     {
-        $this->config = $config;
         $this->client = new Client();
+
+        $this->authentication($config, $accessToken, $instanceUrl);
+
     }
 
 
@@ -61,18 +60,50 @@ class SalesForceRest
      * It does the authentication by OAuth or Password/Secret token depending
      * by the parameters set into the config.
      *
+     * @param  array  $config       - The full config array.
+     * @param  string $accessToken  - The stored access token to avoid the authentication every time.
+     * @param  string $instanceUrl  - The instance url to use in every call.
      * @throws SalesForceException
      */
-    public function authentication()
+    private function authentication(array $config, string $accessToken, string $instanceUrl): void
     {
-        // TODO: check the config to know which auth method is requested (OAuth or by password/secret token).
-        // Actually, we do the auth by OAuth.
+        // If the access token and instance url is already set, use them.
+        if ((!empty($accessToken)) && (!empty($instanceUrl))) {
+            $this->accessToken = $accessToken;
+            $this->instanceUrl = $instanceUrl;
 
-        $this->auth = new SalesForceAuthOauth($this->config);
-        $this->auth->authentication();
+        } else {
+            $auth = new SalesForceAuthOauth($config);
+            $auth->authentication();
+            $this->accessToken = $auth->getAccessToken();
+            $this->instanceUrl = $auth->getInstanceUrl();
+        }
+    }
 
-        $this->accessToken = $this->auth->getAccessToken();
-        $this->instanceUrl = $this->auth->getInstanceUrl();
+
+
+
+    /**
+     * Get current access token.
+     *
+     * @return string $accessToken - The current access token.
+     */
+    public function getAccessToken(): string
+    {
+        return $this->accessToken;
+    }
+
+
+
+
+    /**
+     * Get current instance url.
+     *
+     * @return string $instanceUrl - The current instance url.
+     */
+    public function getInstanceUrl(): string
+    {
+        return $this->instanceUrl;
     }
 
 
