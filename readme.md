@@ -24,37 +24,33 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 use AleoStudio\SalesForceRest\SalesForceRest;
 
+// OAuth credentials.
 $config = [
-    // OAuth credentials.
     'clientId'     => 'YOUR_CLIENT_ID',
     'clientSecret' => 'YOUR_CLIENT_SECRET',
     'callbackUrl'  => 'https://your_domain/oauth_callback_url',
 ];
 
-/* Your stored data to avoid the authentication every time (empty string the first time). */
+// Your stored data to avoid the authentication every time (empty string the first time).
 $accessToken = 'YOUR_CURRENT_ACCESS_TOKEN_STORED_INTO_DB';
 $instanceUrl = 'YOUR_CURRENT_INSTANCE_URL';
 
-/* Main instance. */
+// Main instance.
 $sf = new SalesForceRest($config, $accessToken, $instanceUrl);
 
-/* Prints the current access token and the instance url for test. */
-echo 'Access token: ' . $sf->getAccessToken() . '<br />';
-echo 'Instance URL: ' . $sf->getInstanceUrl() . '<br />';
-
-/* Query an entity using the SOQL syntax. */
+// Query an entity using the SOQL syntax.
 $response = $sf->query('SELECT Id, Name, Title, FirstName, LastName, Email from Contact LIMIT 10');
 foreach ($response['records'] as $row) {
     echo 'ID: '.$row['Id'].' - Name: '.$row['Name'].' - Email: '.$row['Email'].'<br/>';
 }
 
-/* Full entity fields list example. */
+// Full entity fields list example.
 $fields = $sf->getEntityFields('Contact');
 foreach ($fields as $field) {
     echo 'Name: '.$field['name'].' - Label: '.$field['label'].' - Type: '.$field['type'].'<br />';
 }
 
-/* Full methods list. */
+// Full methods list.
 $results     = $sf->query('SELECT Id, Name from Contact LIMIT 100');
 $new_id      = $sf->create('Contact', ['FirstName'=>'John', 'LastName'=>'Doe', 'Email'=>'john.doe@domain.com']);
 $update      = $sf->update('Contact', '0030b00002KgsnvAAB', ['FirstName'=>'Johnnnnn', 'LastName'=>'Doeeee', 'Title'=>null]);
