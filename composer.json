@@ -15,10 +15,11 @@
         }
     ],
     "minimum-stability": "dev",
+    "prefer-stable" : true,
     "require": {
         "php": ">=7.2",
         "guzzlehttp/guzzle": "^6.3@dev",
-        "stevenmaguire/oauth2-salesforce": "^1.0@dev"
+        "stevenmaguire/oauth2-salesforce": "^1.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^8.3@dev"
