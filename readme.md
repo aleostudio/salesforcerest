@@ -25,10 +25,10 @@ composer require aleostudio/salesforcerest
 - Now, click on **Setup** (top right), enter **Apps** in the Quick Find box, select **Apps** (under Build | Create)
 - Click now on **Connected app -> new** (bottom of the page).
 - Enter the required fields and click on **Enable OAuth settings**
-- Specify your **callback URL**. It must be the same as your application’s callback URL (http:// does not work, only https://)
+- Specify your **callback URL**. It must be the same as your application’s callback URL (only https:// works)
 - Select the **OAuth scopes**: Perform requests on your behalf at any time (refresh_token, offline_access)
-- When you click **Save**, the **Consumer Key** is created and displayed, and a **Consumer Secret** is created (click the link to reveal it).
-- **Remember:** client_id is the Consumer Key, client_secret is the Consumer Secret and redirect_uri is the Callback URL.
+- When you click **Save**, the **Consumer Key** and **Consumer Secret** are created. Copy them in your config
+- **Remember:** clientId = Consumer Key, clientSecret = Consumer Secret, and callbackUrl = Callback URL
 ---
 ## Code examples
 - Create a new php file and try this code below (customizing the autoload path)
