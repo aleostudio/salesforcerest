@@ -31,37 +31,37 @@ $config = [
     'callbackUrl'  => 'https://your_domain/oauth_callback_url',
 ];
 
-// Your stored data to avoid the authentication every time (empty string the first time).
+/* Your stored data to avoid the authentication every time (empty string the first time). */
 $accessToken = 'YOUR_CURRENT_ACCESS_TOKEN_STORED_INTO_DB';
 $instanceUrl = 'YOUR_CURRENT_INSTANCE_URL';
 
-// Main instance.
-$salesforce = new SalesForceRest($config, $accessToken, $instanceUrl);
+/* Main instance. */
+$sf = new SalesForceRest($config, $accessToken, $instanceUrl);
 
-// Prints the current access token and the instance url for test.
-echo 'Access token: ' . $salesforce->getAccessToken() . '<br />';
-echo 'Instance URL: ' . $salesforce->getInstanceUrl() . '<br />';
+/* Prints the current access token and the instance url for test. */
+echo 'Access token: ' . $sf->getAccessToken() . '<br />';
+echo 'Instance URL: ' . $sf->getInstanceUrl() . '<br />';
 
-// Query an entity using the SOQL syntax.
-$response = $salesforce->query('SELECT Id, Name, Title, FirstName, LastName, Email from Contact LIMIT 10');
+/* Query an entity using the SOQL syntax. */
+$response = $sf->query('SELECT Id, Name, Title, FirstName, LastName, Email from Contact LIMIT 10');
 foreach ($response['records'] as $row) {
     echo 'ID: '.$row['Id'].' - Name: '.$row['Name'].' - Email: '.$row['Email'].'<br/>';
 }
 
-// Full entity fields list example.
-$fields = $salesforce->getEntityFields('Contact');
+/* Full entity fields list example. */
+$fields = $sf->getEntityFields('Contact');
 foreach ($fields as $field) {
     echo 'Name: '.$field['name'].' - Label: '.$field['label'].' - Type: '.$field['type'].'<br />';
 }
 
-// Full methods list.
-$results     = $salesforce->query('SELECT Id, Name from Contact LIMIT 100');
-$new_id      = $salesforce->create('Contact', ['FirstName'=>'John', 'LastName'=>'Doe', 'Email'=>'john.doe@domain.com']);
-$update      = $salesforce->update('Contact', '0030b00002KgsnvAAB', ['FirstName'=>'Johnnnnn', 'LastName'=>'Doeeee', 'Title'=>null]);
-$delete      = $salesforce->delete('Contact', '0030b00002KgsnvAAB');
-$fields      = $salesforce->getEntityFields('Contact');
-$accessToken = $salesforce->getAccessToken();
-$instanceUrl = $salesforce->getInstanceUrl();
+/* Full methods list. */
+$results     = $sf->query('SELECT Id, Name from Contact LIMIT 100');
+$new_id      = $sf->create('Contact', ['FirstName'=>'John', 'LastName'=>'Doe', 'Email'=>'john.doe@domain.com']);
+$update      = $sf->update('Contact', '0030b00002KgsnvAAB', ['FirstName'=>'Johnnnnn', 'LastName'=>'Doeeee', 'Title'=>null]);
+$delete      = $sf->delete('Contact', '0030b00002KgsnvAAB');
+$fields      = $sf->getEntityFields('Contact');
+$accessToken = $sf->getAccessToken();
+$instanceUrl = $sf->getInstanceUrl();
 
 ```
 ---
