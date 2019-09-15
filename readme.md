@@ -12,12 +12,26 @@ Install its dependencies with:
 ```sh
 composer install
 ```
-If you use composer, type this command:
+If you already use composer in your project and you want use this package, require it with:
 ```sh
 composer require aleostudio/salesforcerest
 ```
 ---
-Then create a new php file and try this code below (customizing the autoload path)
+## SalesForce app creation
+
+- Go to https://developer.salesforce.com/signup
+- Register an user and then authenticate with it.
+- From the dashboard, on the top right menu, click on **Switch to SalesForce Classic**
+- Now, click on **Setup** (top right), enter **Apps** in the Quick Find box, select **Apps** (under Build | Create)
+- Click now on **Connected app -> new** (bottom of the page).
+- Enter the required fields and click on **Enable OAuth settings**
+- Specify your **callback URL**. It must be the same as your application’s callback URL (http:// does not work, only https://)
+- Select the **OAuth scopes**: Perform requests on your behalf at any time (refresh_token, offline_access)
+- When you click **Save**, the **Consumer Key** is created and displayed, and a **Consumer Secret** is created (click the link to reveal it).
+- **Remember:** client_id is the Consumer Key, client_secret is the Consumer Secret and redirect_uri is the Callback URL.
+---
+## Code examples
+- Create a new php file and try this code below (customizing the autoload path)
 ```sh
 <?php
 require_once __DIR__ . '/vendor/autoload.php';
