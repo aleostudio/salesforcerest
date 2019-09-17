@@ -14,18 +14,19 @@ use AleoStudio\SalesForceRest\Exceptions\SalesForceException;
 
 // External packages.
 use GuzzleHttp\Client;
+use mysql_xdevapi\Exception;
 
 
 class SalesForceRest
 {
     /**
-     * @var $client      - The GuzzleHttp instance.
-     * @var $accessToken - The current access token.
-     * @var $instanceUrl - The current instance url.
+     * @var array  $config - The full config array.
+     * @var Client $client - The GuzzleHttp instance.
+     * @var object $token  - The current token object.
      */
+    private $config;
     private $client;
-    private $accessToken;
-    private $instanceUrl;
+    private $token;
 
     /**
      * The current API version. We can retrieve all the available apis from:
@@ -40,17 +41,13 @@ class SalesForceRest
      * SalesForceRest constructor.
      * It creates a GuzzleClient instance and executes the authentication method.
      *
-     * @param  array  $config       - The full config array.
-     * @param  string $accessToken  - The stored access token to avoid the authentication every time.
-     * @param  string $instanceUrl  - The instance url to use in every call.
+     * @param  array $config - The full config array.
      * @throws SalesForceException
      */
-    public function __construct(array $config, string $accessToken, string $instanceUrl)
+    public function __construct(array $config)
     {
         $this->client = new Client();
-
-        $this->authentication($config, $accessToken, $instanceUrl);
-
+        $this->config = $config;
     }
 
 
@@ -60,24 +57,34 @@ class SalesForceRest
      * It does the authentication by OAuth or Password/Secret token depending
      * by the parameters set into the config.
      *
-     * @param  array  $config       - The full config array.
-     * @param  string $accessToken  - The stored access token to avoid the authentication every time.
-     * @param  string $instanceUrl  - The instance url to use in every call.
+     * @param  object $token   - The full token object that includes access token, refresh token etc.
+     * @param  bool $authorize - If set to true, we force the authorization.
      * @throws SalesForceException
      */
-    private function authentication(array $config, string $accessToken, string $instanceUrl): void
+    public function authentication($token, bool $authorize): void
     {
-        // If the access token and instance url is already set, use them.
-        if ((!empty($accessToken)) && (!empty($instanceUrl))) {
-            $this->accessToken = $accessToken;
-            $this->instanceUrl = $instanceUrl;
-
-        } else {
-            $auth = new SalesForceAuthOauth($config);
+        if ($authorize) {
+            $auth = new SalesForceAuthOauth($this->config);
             $auth->authentication();
-            $this->accessToken = $auth->getAccessToken();
-            $this->instanceUrl = $auth->getInstanceUrl();
+            $this->token = $auth->getToken();
+        } else if ($token) {
+            $this->token = $token;
+        } else {
+            throw new SalesForceException('You must pass a valid token object or set the authorize to true');
         }
+    }
+
+
+
+
+    /**
+     * Get current access token.
+     *
+     * @return object $token - The current token object.
+     */
+    public function getToken(): object
+    {
+        return $this->token;
     }
 
 
@@ -90,7 +97,7 @@ class SalesForceRest
      */
     public function getAccessToken(): string
     {
-        return $this->accessToken;
+        return $this->token->accessToken;
     }
 
 
@@ -103,7 +110,7 @@ class SalesForceRest
      */
     public function getInstanceUrl(): string
     {
-        return $this->instanceUrl;
+        return $this->token->instanceUrl;
     }
 
 

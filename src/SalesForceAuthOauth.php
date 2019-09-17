@@ -60,24 +60,43 @@ class SalesForceAuthOauth implements SalesForceAuthInterface
 
         $auth = new OAuth($oauthParams);
 
-        // TODO:
-        // a) get access token, expiry date and refresh token from database if exists
-        // b) check if token is still valid
-        // c) if it is expired, request a refresh access token
+        $authorizationUrl = $auth->getAuthorizationUrl();
 
-        if (empty($this->accessToken)) {
-            $authorizationUrl = $auth->getAuthorizationUrl();
+        if (isset($_GET['code'])) {
+            $token = $auth->getAccessToken('authorization_code', ['code' => $_GET['code']]);
 
-            if (isset($_GET['code'])) {
-                $tokenObject        = $auth->getAccessToken('authorization_code', ['code' => $_GET['code']]);
-                $this->accessToken  = $tokenObject->getToken();
-                $this->instanceUrl  = $tokenObject->getInstanceUrl();
-                $this->refreshToken = $tokenObject->getRefreshToken();
-                $this->tokenExpiry  = $tokenObject->getExpires();
-            } else {
-                header('Location: '.$authorizationUrl);
-            }
+            $this->accessToken  = $token->getToken();
+            $this->refreshToken = $token->getRefreshToken();
+            $this->instanceUrl  = $token->getInstanceUrl();
+            $this->tokenExpiry  = $token->getExpires();
+
+        } else {
+            header('Location: '.$authorizationUrl);
         }
+    }
+
+
+
+
+    /**
+     * Retrieves the SalesForce token object.
+     *
+     * @return object $token - Returns a valid token object.
+     */
+    public function getToken(): object
+    {
+        $token = null;
+
+        if ($this->accessToken) {
+            $token = (object) [
+                'accessToken'  => $this->accessToken,
+                'refreshToken' => $this->refreshToken,
+                'instanceUrl'  => $this->instanceUrl,
+                'tokenExpiry'  => $this->tokenExpiry
+            ];
+        }
+
+        return $token;
     }
 
 
@@ -88,14 +107,9 @@ class SalesForceAuthOauth implements SalesForceAuthInterface
      * the authentication method is called.
      *
      * @return string $accessToken - Returns a valid access token.
-     * @throws SalesForceException
      */
     public function getAccessToken(): string
     {
-        if (empty($this->accessToken)) {
-            $this->authentication();
-        }
-
         return $this->accessToken;
     }
 
@@ -161,14 +175,9 @@ class SalesForceAuthOauth implements SalesForceAuthInterface
      * Retrieves the SalesForce instance url after the authentication.
      *
      * @return string $instanceUrl - Returns the instance url.
-     * @throws SalesForceException
      */
     public function getInstanceUrl(): string
     {
-        if (empty($this->instanceUrl)) {
-            $this->authentication();
-        }
-
         return $this->instanceUrl;
     }
 }
