@@ -104,7 +104,7 @@ class SalesForceRest
 
 
     /**
-     * Get current instance url.
+     * Get the current instance url.
      *
      * @return string $instanceUrl - The current instance url.
      */
