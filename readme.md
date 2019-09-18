@@ -45,12 +45,22 @@ $config = [
     'callbackUrl'  => 'https://your_domain/oauth_callback_url',
 ];
 
-// Your stored data to avoid the authentication every time (empty string the first time).
-$accessToken = 'YOUR_CURRENT_ACCESS_TOKEN_STORED_INTO_DB';
-$instanceUrl = 'YOUR_CURRENT_INSTANCE_URL';
+// Your stored token object to bypass the authentication every time (set to null the first time).
+$storedToken = (object) [
+    'accessToken'  => 'YOUR_STORED_ACCESS_TOKEN',
+    'refreshToken' => 'YOUR_STORED_REFRESH_TOKEN',
+    'instanceUrl'  => 'YOUR_STORED_INSTANCE_URL',
+    'tokenExpiry'  => 'YOUR_STORED_TOKEN_EXPIRY_DATE'
+];
 
 // Main instance.
-$sf = new SalesForceRest($config, $accessToken, $instanceUrl);
+$sf = new SalesForceRest($config);
+
+// OAuth authentication.
+// Set $authorize to true to force the auth or leave it to false if you want to use your stored token.
+$authorize = true;
+if ($storedToken) $authorize = false;
+$sf->authentication($storedToken, $authorize);
 
 // Query an entity using the SOQL syntax.
 $response = $sf->query('SELECT Id, Name, Title, FirstName, LastName, Email from Contact LIMIT 10');
@@ -70,6 +80,7 @@ $new_id      = $sf->create('Contact', ['FirstName'=>'John', 'LastName'=>'Doe', '
 $update      = $sf->update('Contact', '0030b00002KgsnvAAB', ['FirstName'=>'Johnnnnn', 'LastName'=>'Doeeee', 'Title'=>null]);
 $delete      = $sf->delete('Contact', '0030b00002KgsnvAAB');
 $fields      = $sf->getEntityFields('Contact');
+$tokenObject = $sf->getToken();
 $accessToken = $sf->getAccessToken();
 $instanceUrl = $sf->getInstanceUrl();
 

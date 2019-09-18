@@ -60,8 +60,6 @@ class SalesForceAuthOauth implements SalesForceAuthInterface
 
         $auth = new OAuth($oauthParams);
 
-        $authorizationUrl = $auth->getAuthorizationUrl();
-
         if (isset($_GET['code'])) {
             $token = $auth->getAccessToken('authorization_code', ['code' => $_GET['code']]);
 
@@ -71,7 +69,7 @@ class SalesForceAuthOauth implements SalesForceAuthInterface
             $this->tokenExpiry  = $token->getExpires();
 
         } else {
-            header('Location: '.$authorizationUrl);
+            header('Location: '.$auth->getAuthorizationUrl());
         }
     }
 
@@ -87,7 +85,7 @@ class SalesForceAuthOauth implements SalesForceAuthInterface
     {
         $token = null;
 
-        if ($this->accessToken) {
+        if ($this->accessToken && $this->refreshToken && $this->instanceUrl) {
             $token = (object) [
                 'accessToken'  => $this->accessToken,
                 'refreshToken' => $this->refreshToken,

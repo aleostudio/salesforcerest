@@ -14,7 +14,6 @@ use AleoStudio\SalesForceRest\Exceptions\SalesForceException;
 
 // External packages.
 use GuzzleHttp\Client;
-use mysql_xdevapi\Exception;
 
 
 class SalesForceRest
@@ -54,11 +53,10 @@ class SalesForceRest
 
 
     /**
-     * It does the authentication by OAuth or Password/Secret token depending
-     * by the parameters set into the config.
+     * It does the authentication by OAuth2 by the parameters set into the config.
      *
-     * @param  object $token   - The full token object that includes access token, refresh token etc.
-     * @param  bool $authorize - If set to true, we force the authorization.
+     * @param  object $token     - The full token object that includes access token, refresh token etc.
+     * @param  bool   $authorize - If set to true, we force the authorization.
      * @throws SalesForceException
      */
     public function authentication($token, bool $authorize): void
@@ -68,6 +66,7 @@ class SalesForceRest
             $auth->authentication();
             $this->token = $auth->getToken();
         } else if ($token) {
+            // TODO: Check if token is expired.
             $this->token = $token;
         } else {
             throw new SalesForceException('You must pass a valid token object or set the authorize to true');
@@ -78,7 +77,7 @@ class SalesForceRest
 
 
     /**
-     * Get current access token.
+     * Get current token object.
      *
      * @return object $token - The current token object.
      */
@@ -133,10 +132,10 @@ class SalesForceRest
      */
     public function query(string $query): array
     {
-        $url = $this->instanceUrl.'/services/data/v'.$this->apiVersion.'/query';
+        $url = $this->getInstanceUrl().'/services/data/v'.$this->apiVersion.'/query';
 
         $request = $this->client->request('GET', $url, [
-            'headers' => [ 'Authorization' => 'OAuth '.$this->accessToken ],
+            'headers' => [ 'Authorization' => 'OAuth '.$this->getAccessToken() ],
             'query'   => [ 'q' => $query ]
         ]);
 
@@ -163,10 +162,10 @@ class SalesForceRest
      */
     public function create(string $entity, array $data): string
     {
-        $url = $this->instanceUrl.'/services/data/v'.$this->apiVersion.'/sobjects/'.$entity.'/';
+        $url = $this->getInstanceUrl().'/services/data/v'.$this->apiVersion.'/sobjects/'.$entity.'/';
 
         $request = $this->client->request('POST', $url, [
-            'headers' => [ 'Authorization' => 'OAuth '.$this->accessToken, 'Content-type'  => 'application/json' ],
+            'headers' => [ 'Authorization' => 'OAuth '.$this->getAccessToken(), 'Content-type'  => 'application/json' ],
             'json' => $data
         ]);
 
@@ -196,10 +195,10 @@ class SalesForceRest
      */
     public function update(string $entity, string $id, array $data): int
     {
-        $url = $this->instanceUrl.'/services/data/v'.$this->apiVersion.'/sobjects/'.$entity.'/'.$id;
+        $url = $this->getInstanceUrl().'/services/data/v'.$this->apiVersion.'/sobjects/'.$entity.'/'.$id;
 
         $request = $this->client->request('PATCH', $url, [
-            'headers' => [ 'Authorization' => 'OAuth '.$this->accessToken, 'Content-type'  => 'application/json' ],
+            'headers' => [ 'Authorization' => 'OAuth '.$this->getAccessToken(), 'Content-type'  => 'application/json' ],
             'json' => $data
         ]);
 
@@ -229,10 +228,10 @@ class SalesForceRest
      */
     public function upsert(string $entity, string $field, string $id, array $data): int
     {
-        $url = $this->instanceUrl.'/services/data/v'.$this->apiVersion.'/sobjects/'.$entity.'/'.$field.'/'.$id;
+        $url = $this->getInstanceUrl().'/services/data/v'.$this->apiVersion.'/sobjects/'.$entity.'/'.$field.'/'.$id;
 
         $request = $this->client->request('PATCH', $url, [
-            'headers' => [ 'Authorization' => 'OAuth '.$this->accessToken, 'Content-type'  => 'application/json' ],
+            'headers' => [ 'Authorization' => 'OAuth '.$this->getAccessToken(), 'Content-type'  => 'application/json' ],
             'json' => $data
         ]);
 
@@ -259,9 +258,9 @@ class SalesForceRest
      */
     public function delete(string $entity, string $id): bool
     {
-        $url = $this->instanceUrl.'/services/data/v'.$this->apiVersion.'/sobjects/'.$entity.'/'.$id;
+        $url = $this->getInstanceUrl().'/services/data/v'.$this->apiVersion.'/sobjects/'.$entity.'/'.$id;
 
-        $request = $this->client->request('DELETE', $url, ['headers' => [ 'Authorization' => 'OAuth '.$this->accessToken ]]);
+        $request = $this->client->request('DELETE', $url, ['headers' => [ 'Authorization' => 'OAuth '.$this->getAccessToken() ]]);
 
         if ($request->getStatusCode() != 204) {
             throw new SalesForceException('Error! '.$url.' failed with status '.$request->getStatusCode().'. Reason: '.$request->getReasonPhrase());
@@ -283,8 +282,8 @@ class SalesForceRest
      */
     public function getEntityFields(string $entity): array
     {
-        $url = $this->instanceUrl.'/services/data/v'.$this->apiVersion.'/sobjects/'.$entity.'/describe/';
-        $request = $this->client->request('GET', $url, ['headers'=>['Authorization'=>'OAuth '.$this->accessToken]]);
+        $url = $this->getInstanceUrl().'/services/data/v'.$this->apiVersion.'/sobjects/'.$entity.'/describe/';
+        $request = $this->client->request('GET', $url, ['headers'=>['Authorization'=>'OAuth '.$this->getAccessToken()]]);
 
         if ($request->getStatusCode() != 200) {
             throw new SalesForceException('Error! '.$url.' failed with status '.$request->getStatusCode().'. Reason: '.$request->getReasonPhrase());
