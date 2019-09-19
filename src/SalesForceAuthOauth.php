@@ -70,6 +70,7 @@ class SalesForceAuthOauth implements SalesForceAuthInterface
 
         } else {
             header('Location: '.$auth->getAuthorizationUrl());
+            die();
         }
     }
 
@@ -83,7 +84,7 @@ class SalesForceAuthOauth implements SalesForceAuthInterface
      */
     public function getToken(): object
     {
-        $token = null;
+        $token = (object) [];
 
         if ($this->accessToken && $this->refreshToken && $this->instanceUrl) {
             $token = (object) [

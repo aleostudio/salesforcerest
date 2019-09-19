@@ -14,7 +14,6 @@ use AleoStudio\SalesForceRest\Exceptions\SalesForceException;
 
 // External packages.
 use GuzzleHttp\Client;
-use mysql_xdevapi\Exception;
 
 
 class SalesForceRest
@@ -57,18 +56,17 @@ class SalesForceRest
      * It does the authentication by OAuth or Password/Secret token depending
      * by the parameters set into the config.
      *
-     * @param  object $token   - The full token object that includes access token, refresh token etc.
-     * @param  bool $authorize - If set to true, we force the authorization.
+     * @param  object $token     - The full token object that includes access token, refresh token etc.
+     * @param  bool   $authorize - If set to true, we force the authorization.
      * @throws SalesForceException
      */
-    public function authentication($token, bool $authorize): void
+    public function authentication(object $token, bool $authorize): void
     {
         if ($authorize) {
             $auth = new SalesForceAuthOauth($this->config);
             $auth->authentication();
             $this->token = $auth->getToken();
-        } else if ($token) {
-            // TODO: Check if token is expired.
+        } else if (!empty((array) $token)) {
             $this->token = $token;
         } else {
             throw new SalesForceException('You must pass a valid token object or set the authorize to true');
@@ -85,7 +83,23 @@ class SalesForceRest
      */
     public function getToken(): object
     {
-        return (object) $this->token;
+        return $this->token;
+    }
+
+
+    /**
+     * Set the full token object from database.
+     *
+     * @param object $token - The full token object.
+     * @throws SalesForceException
+     */
+    public function setToken(object $token): void
+    {
+        if (!empty((array) $token)) {
+            $this->token = $token;
+        } else {
+            throw new SalesForceException('The given token is not a valid object');
+        }
     }
 
 
@@ -98,7 +112,7 @@ class SalesForceRest
      */
     public function getAccessToken(): string
     {
-        return $this->getToken()->accessToken;
+        return isset($this->getToken()->accessToken) ? $this->getToken()->accessToken : '';
     }
 
 
@@ -111,7 +125,7 @@ class SalesForceRest
      */
     public function getInstanceUrl(): string
     {
-        return $this->getToken()->instanceUrl;
+        return isset($this->getToken()->instanceUrl) ? $this->getToken()->instanceUrl : '';
     }
 
 
