@@ -14,6 +14,7 @@ use AleoStudio\SalesForceRest\Exceptions\SalesForceException;
 
 // External packages.
 use GuzzleHttp\Client;
+use mysql_xdevapi\Exception;
 
 
 class SalesForceRest
@@ -53,10 +54,11 @@ class SalesForceRest
 
 
     /**
-     * It does the authentication by OAuth2 by the parameters set into the config.
+     * It does the authentication by OAuth or Password/Secret token depending
+     * by the parameters set into the config.
      *
-     * @param  object $token     - The full token object that includes access token, refresh token etc.
-     * @param  bool   $authorize - If set to true, we force the authorization.
+     * @param  object $token   - The full token object that includes access token, refresh token etc.
+     * @param  bool $authorize - If set to true, we force the authorization.
      * @throws SalesForceException
      */
     public function authentication($token, bool $authorize): void
@@ -77,13 +79,13 @@ class SalesForceRest
 
 
     /**
-     * Get current token object.
+     * Get current access token.
      *
      * @return object $token - The current token object.
      */
     public function getToken(): object
     {
-        return $this->token;
+        return (object) $this->token;
     }
 
 
@@ -96,7 +98,7 @@ class SalesForceRest
      */
     public function getAccessToken(): string
     {
-        return $this->token->accessToken;
+        return $this->getToken()->accessToken;
     }
 
 
@@ -109,7 +111,7 @@ class SalesForceRest
      */
     public function getInstanceUrl(): string
     {
-        return $this->token->instanceUrl;
+        return $this->getToken()->instanceUrl;
     }
 
 
