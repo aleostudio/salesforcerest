@@ -91,10 +91,11 @@ $update  = $sf->update('Contact', '0030b00002KgsnvAAB', ['FirstName'=>'Johnnnnn'
 $delete  = $sf->delete('Contact', '0030b00002KgsnvAAB');
 
 // Helper methods list.
-$lists  = $sf->getEntityLists('Contact');
-$fields = $sf->getEntityFields('Contact');
-$item   = $sf->getItem('Contact', '0030b00002KgsnvAAB');
-$items  = $sf->getItems('Contact', 'LIST_ID');
+$lists   = $sf->getEntityLists('Contact');
+$fields  = $sf->getEntityFields('Contact');
+$fOnList = $sf->getEntityFields('Contact', 'LIST_ID');
+$item    = $sf->getItem('Contact', '0030b00002KgsnvAAB');
+$items   = $sf->getItems('Contact', 'LIST_ID');
 
 // Auth methods list.
 $authInstance = $sf->authentication((object)[], true);

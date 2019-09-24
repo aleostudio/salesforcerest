@@ -345,16 +345,23 @@ class SalesForceRest
      * Retrieves all the fields and the custom fields of a given entity (object).
      *
      * @param  string $entity  - The entity to analyze to get the full custom fields list
+     * @param  string $listId  - The list ID that contains the fields to get (optional).
      * @return array  $results - The query result (if valid).
      * @throws SalesForceException
      * @throws GuzzleException
      */
-    public function getEntityFields(string $entity): array
+    public function getEntityFields(string $entity, string $listId = null): array
     {
-        $url    = $this->getInstanceUrl().'/services/data/v'.$this->apiVersion.'/sobjects/'.$entity.'/describe/';
-        $result = $this->getResourceByCustomUrl($url);
+        if (!$listId || $listId == '') {
+            $url    = $this->getInstanceUrl().'/services/data/v'.$this->apiVersion.'/sobjects/'.$entity.'/describe/';
+            $result = $this->getResourceByCustomUrl($url)['fields'];
+        } else {
+            $url    = $this->getInstanceUrl().'/services/data/v'.$this->apiVersion.'/sobjects/'.$entity.'/listviews/'.$listId.'/describe/';
+            $result = $this->getResourceByCustomUrl($url)['columns'];
+        }
 
-        return $result['fields'];
+
+        return $result;
     }
 
 
