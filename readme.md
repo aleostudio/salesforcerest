@@ -55,18 +55,18 @@ $storedToken = (object) [
 ];
 
 // Main instance.
-$salesforce = new SalesForceRest($config);
+$sf = new SalesForceRest($config);
 
 
 // If we already have a valid token object, we can bypass the auth flow.
 if (!empty((array) $storedToken)) {
     // Sets the stored token into our SalesForce instance.
-    $salesforce->setToken($storedToken);
+    $sf->setToken($storedToken);
 } else {
     // OAuth authentication.
     // Set $authorize to true to force the auth or leave it to false if you want to use your stored token.
     $authorize = true;
-    $salesforce->authentication($storedToken, $authorize);
+    $sf->authentication($storedToken, $authorize);
 }
 
 
@@ -84,15 +84,23 @@ foreach ($fields as $field) {
 }
 
 
-// Full methods list.
-$results     = $sf->query('SELECT Id, Name from Contact LIMIT 100');
-$new_id      = $sf->create('Contact', ['FirstName'=>'John', 'LastName'=>'Doe', 'Email'=>'john.doe@domain.com']);
-$update      = $sf->update('Contact', '0030b00002KgsnvAAB', ['FirstName'=>'Johnnnnn', 'LastName'=>'Doeeee', 'Title'=>null]);
-$delete      = $sf->delete('Contact', '0030b00002KgsnvAAB');
-$fields      = $sf->getEntityFields('Contact');
-$tokenObject = $sf->getToken();
-$accessToken = $sf->getAccessToken();
-$instanceUrl = $sf->getInstanceUrl();
+// CRUD methods list.
+$results = $sf->query('SELECT Id, Name from Contact LIMIT 100');
+$new_id  = $sf->create('Contact', ['FirstName'=>'John', 'LastName'=>'Doe', 'Email'=>'john.doe@domain.com']);
+$update  = $sf->update('Contact', '0030b00002KgsnvAAB', ['FirstName'=>'Johnnnnn', 'LastName'=>'Doeeee', 'Title'=>null]);
+$delete  = $sf->delete('Contact', '0030b00002KgsnvAAB');
+
+// Helper methods list.
+$lists  = $sf->getEntityLists('Contact');
+$fields = $sf->getEntityFields('Contact');
+$item   = $sf->getItem('Contact', '0030b00002KgsnvAAB');
+$items  = $sf->getItems('Contact', 'LIST_ID');
+
+// Auth methods list.
+$authInstance = $sf->authentication((object)[], true);
+$tokenObject  = $sf->getToken();
+$accessToken  = $sf->getAccessToken();
+$instanceUrl  = $sf->getInstanceUrl();
 $sf->setToken($tokenObject);
 
 ```

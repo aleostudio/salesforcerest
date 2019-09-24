@@ -14,6 +14,7 @@ use AleoStudio\SalesForceRest\Exceptions\SalesForceException;
 
 // External packages.
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 
 
 class SalesForceRest
@@ -144,7 +145,7 @@ class SalesForceRest
      * @param  string $query   - The SOQL format query to retrieve a resource.
      * @return array  $results - The query result (if valid).
      * @throws SalesForceException
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     public function query(string $query): array
     {
@@ -174,14 +175,17 @@ class SalesForceRest
      * @param  array  $data   - The entity data.
      * @return string $id     - The created entity ID (if goes fine).
      * @throws SalesForceException
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     public function create(string $entity, array $data): string
     {
         $url = $this->getInstanceUrl().'/services/data/v'.$this->apiVersion.'/sobjects/'.$entity.'/';
 
         $request = $this->client->request('POST', $url, [
-            'headers' => [ 'Authorization' => 'OAuth '.$this->getAccessToken(), 'Content-type'  => 'application/json' ],
+            'headers' => [
+                'Authorization' => 'OAuth '.$this->getAccessToken(),
+                'Content-type'  => 'application/json'
+            ],
             'json' => $data
         ]);
 
@@ -207,14 +211,17 @@ class SalesForceRest
      * @param  array  $data   - The entity data.
      * @return int    $code   - The status code returned by the call.
      * @throws SalesForceException
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     public function update(string $entity, string $id, array $data): int
     {
         $url = $this->getInstanceUrl().'/services/data/v'.$this->apiVersion.'/sobjects/'.$entity.'/'.$id;
 
         $request = $this->client->request('PATCH', $url, [
-            'headers' => [ 'Authorization' => 'OAuth '.$this->getAccessToken(), 'Content-type'  => 'application/json' ],
+            'headers' => [
+                'Authorization' => 'OAuth '.$this->getAccessToken(),
+                'Content-type'  => 'application/json'
+            ],
             'json' => $data
         ]);
 
@@ -240,14 +247,17 @@ class SalesForceRest
      * @param  array  $data   - The entity data.
      * @return int    $code   - The status code returned by the call.
      * @throws SalesForceException
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     public function upsert(string $entity, string $field, string $id, array $data): int
     {
         $url = $this->getInstanceUrl().'/services/data/v'.$this->apiVersion.'/sobjects/'.$entity.'/'.$field.'/'.$id;
 
         $request = $this->client->request('PATCH', $url, [
-            'headers' => [ 'Authorization' => 'OAuth '.$this->getAccessToken(), 'Content-type'  => 'application/json' ],
+            'headers' => [
+                'Authorization' => 'OAuth '.$this->getAccessToken(),
+                'Content-type'  => 'application/json'
+            ],
             'json' => $data
         ]);
 
@@ -270,13 +280,15 @@ class SalesForceRest
      * @param  string $id     - The entity ID to delete.
      * @return bool           - Returns true if deleted.
      * @throws SalesForceException
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     public function delete(string $entity, string $id): bool
     {
         $url = $this->getInstanceUrl().'/services/data/v'.$this->apiVersion.'/sobjects/'.$entity.'/'.$id;
 
-        $request = $this->client->request('DELETE', $url, ['headers' => [ 'Authorization' => 'OAuth '.$this->getAccessToken() ]]);
+        $request = $this->client->request('DELETE', $url, [
+            'headers' => [ 'Authorization' => 'OAuth '.$this->getAccessToken() ]
+        ]);
 
         if ($request->getStatusCode() != 204) {
             throw new SalesForceException('Error! '.$url.' failed with status '.$request->getStatusCode().'. Reason: '.$request->getReasonPhrase());
@@ -289,22 +301,117 @@ class SalesForceRest
 
 
     /**
-     * Retrieves all the fields and the custom fields of a given entity (object).
+     * Generic call to a SalesForce REST endpoint to retrieve some content.
      *
-     * @param  string $entity  - The entity to analyze to get the full custom fields list
-     * @return array  $results - The query result (if valid).
+     * @param  string $url    - The endpoint URL to call.
+     * @return array  $result - The call result.
+     * @throws GuzzleException
      * @throws SalesForceException
-     * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function getEntityFields(string $entity): array
+    public function getResourceByCustomUrl(string $url): array
     {
-        $url = $this->getInstanceUrl().'/services/data/v'.$this->apiVersion.'/sobjects/'.$entity.'/describe/';
-        $request = $this->client->request('GET', $url, ['headers'=>['Authorization'=>'OAuth '.$this->getAccessToken()]]);
+        $request = $this->client->request('GET', $url, ['headers' => [ 'Authorization' => 'OAuth '.$this->getAccessToken() ]]);
 
         if ($request->getStatusCode() != 200) {
             throw new SalesForceException('Error! '.$url.' failed with status '.$request->getStatusCode().'. Reason: '.$request->getReasonPhrase());
         }
 
-        return json_decode($request->getBody(), true)['fields'];
+        return json_decode($request->getBody(), true);
+    }
+
+
+
+
+    /**
+     * Retrieves all the fields and the custom fields of a given entity (object).
+     *
+     * @param  string $entity  - The entity to analyze to get the full custom fields list
+     * @return array  $results - The query result (if valid).
+     * @throws SalesForceException
+     * @throws GuzzleException
+     */
+    public function getEntityLists(string $entity): array
+    {
+        $url    = $this->getInstanceUrl().'/services/data/v'.$this->apiVersion.'/sobjects/'.$entity.'/listviews/';
+        $result = $this->getResourceByCustomUrl($url);
+
+        return $result['listviews'];
+    }
+
+
+
+
+    /**
+     * Retrieves all the fields and the custom fields of a given entity (object).
+     *
+     * @param  string $entity  - The entity to analyze to get the full custom fields list
+     * @return array  $results - The query result (if valid).
+     * @throws SalesForceException
+     * @throws GuzzleException
+     */
+    public function getEntityFields(string $entity): array
+    {
+        $url    = $this->getInstanceUrl().'/services/data/v'.$this->apiVersion.'/sobjects/'.$entity.'/describe/';
+        $result = $this->getResourceByCustomUrl($url);
+
+        return $result['fields'];
+    }
+
+
+
+
+    /**
+     * Retrieves an item by its entity type and its ID.
+     *
+     * @param  string $entity - The item entity (Contact, Account...).
+     * @param  string $id     - The item unique ID (Id).
+     * @return array  $item   - Returns the item if exists or false.
+     * @throws SalesForceException
+     * @throws GuzzleException
+     */
+    public function getItem(string $entity, string $id): array
+    {
+        $names  = [];
+        $fields = $this->getEntityFields($entity);
+
+        foreach ($fields as $field) {
+            array_push($names, $field['name']);
+        }
+
+        $query = "SELECT ".implode(',', $names)." FROM ".$entity." WHERE Id='".$id."'";
+        $item  = $this->query($query);
+
+        if ($item) return $item;
+
+        return [];
+    }
+
+
+
+
+    /**
+     * Retrieves all the items of a given entity and in a given list (optional).
+     *
+     * @param  string $entity - The item entity (Contact, Account...).
+     * @param  string $listId - The list ID that contains the items to get (optional).
+     * @return array  $items  - The items list if exists.
+     * @throws GuzzleException
+     * @throws SalesForceException
+     */
+    public function getItems(string $entity, string $listId): array
+    {
+        $result = [];
+
+        if (empty($listId)) {
+            $names  = [];
+            $fields = $this->getEntityFields($entity);
+            foreach ($fields as $field) array_push($names, $field['name']);
+            $result = $this->query('SELECT '.implode(',', $names).' FROM '.$entity);
+        } else {
+            $url    = $this->getInstanceUrl().'/services/data/v'.$this->apiVersion.'/sobjects/'.$entity.'/listviews/'.$listId.'/results';
+            $result = $this->getResourceByCustomUrl($url)['records'];
+        }
+
+        return $result;
     }
 }
